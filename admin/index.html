@@ -1,28 +1,119 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>GAAISO Admin</title><meta name="robots" content="noindex,nofollow"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="../styles.css"></head><body>
-<header class="site-header"><nav class="nav"><a class="brand" href="../index.html"><span class="brand-mark">G</span><span class="brand-name">GAAISO</span></a><div class="menu"><a href="../index.html">Website</a><a href="../gallery.html">Gallery</a><a href="../shop.html">Shop</a><a class="pill" href="./">Admin</a></div></nav></header>
-<main class="admin-shell">
-  <section id="loginBox" class="panel"><div class="kicker">Owner Login</div><h2>GAAISO Admin</h2><p>Enter the owner password to manage launch content on this device.</p><form class="form" id="loginForm"><input class="input" type="password" id="adminPass" placeholder="Admin password" autocomplete="current-password"><button class="btn dark" type="submit">Login</button></form><p class="small">Default route: <strong>/admin</strong>. Password: set by owner.</p></section>
-  <section id="adminApp" class="hidden"><div class="admin-grid"><aside class="admin-side"><button class="btn dark" data-tab="gallery">Gallery</button><button class="btn" data-tab="products">Products</button><button class="btn" data-tab="guestbook">Guest Book</button><button class="btn" data-tab="export">Export / Backup</button><button class="btn" id="logoutBtn">Logout</button><p class="small">Static launch admin: changes save in this browser. Export the data when you want to hardcode it into the website.</p></aside><div class="admin-main">
-    <div class="panel admin-tab" id="tab-gallery"><h3>Add gallery photo</h3><p class="small">Use an existing asset path like <code>assets/gaaiso-22.jpg</code>. For new uploaded photos, place them in the assets folder first.</p><form class="form" id="galleryForm"><input class="input" name="src" placeholder="assets/new-photo.jpg" required><input class="input" name="title" placeholder="Photo title" required><input class="input" name="category" placeholder="Jewellery / Hampers / Gifts / Craft"><button class="btn dark" type="submit">Add Gallery Item</button></form><div id="galleryAdminList"></div></div>
-    <div class="panel admin-tab hidden" id="tab-products"><h3>Add product</h3><form class="form" id="productForm"><input class="input" name="src" placeholder="assets/product.jpg" required><input class="input" name="name" placeholder="Product name" required><input class="input" name="price" placeholder="Price on request"><input class="input" name="tag" placeholder="Short tag"><input class="input" name="status" placeholder="Available / Custom order"><button class="btn dark" type="submit">Add Product</button></form><div id="productAdminList"></div></div>
-    <div class="panel admin-tab hidden" id="tab-guestbook"><h3>Guest book messages</h3><div class="notes" id="adminNotes"></div><button class="btn" id="clearNotes">Clear local visitor notes</button></div>
-    <div class="panel admin-tab hidden" id="tab-export"><h3>Export local content</h3><p>Copy this export if you add content in admin. It can be pasted into <code>cms-data.js</code> later for permanent website content.</p><button class="btn dark" id="refreshExport">Refresh Export</button><button class="btn" id="downloadExport">Download JSON</button><pre class="codebox" id="exportBox"></pre></div>
-  </div></div></section>
-</main><div class="toast"></div>
-<script src="../cms-data.js"></script>
-<script>
-const PASSWORD='av123'; const LS={login:'gaaiso_admin_login_v1',gallery:'gaaiso_gallery_v1',products:'gaaiso_products_v1',notes:'gaaiso_notes_v1'}; const $=(s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
-function toast(m){const t=$('.toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
-function arr(k){try{return JSON.parse(localStorage.getItem(LS[k])||'[]')}catch{return[]}} function set(k,v){localStorage.setItem(LS[k],JSON.stringify(v))}
-function showApp(){ $('#loginBox').classList.add('hidden'); $('#adminApp').classList.remove('hidden'); render(); }
-function logout(){localStorage.removeItem(LS.login);location.reload()}
-function tab(name){$$('.admin-tab').forEach(x=>x.classList.add('hidden'));$('#tab-'+name).classList.remove('hidden');$$('.admin-side .btn').forEach(b=>b.classList.toggle('dark',b.dataset.tab===name))}
-function render(){ $('#galleryAdminList').innerHTML='<h4>Local gallery additions</h4>'+(arr('gallery').length?'<table class="table"><tr><th>Title</th><th>Category</th><th>Path</th><th></th></tr>'+arr('gallery').map((g,i)=>`<tr><td>${g.title}</td><td>${g.category||''}</td><td>${g.src}</td><td><button onclick="delItem('gallery',${i})">Delete</button></td></tr>`).join('')+'</table>':'<p class="small">No local gallery additions yet.</p>'); $('#productAdminList').innerHTML='<h4>Local product additions</h4>'+(arr('products').length?'<table class="table"><tr><th>Name</th><th>Status</th><th>Path</th><th></th></tr>'+arr('products').map((p,i)=>`<tr><td>${p.name}</td><td>${p.status||''}</td><td>${p.src}</td><td><button onclick="delItem('products',${i})">Delete</button></td></tr>`).join('')+'</table>':'<p class="small">No local product additions yet.</p>'); $('#adminNotes').innerHTML=arr('notes').length?arr('notes').map((n,i)=>`<div class="note"><b>${n.name}</b><p>${n.message}</p><span>${n.city||''}</span><br><button onclick="delItem('notes',${i})">Delete</button></div>`).join(''):'<p class="small">No local guest messages yet.</p>'; refreshExport(); }
-window.delItem=(k,i)=>{const a=arr(k);a.splice(i,1);set(k,a);render();toast('Deleted')}
-function refreshExport(){const data={gallery:arr('gallery'),products:arr('products'),notes:arr('notes')};$('#exportBox').textContent=JSON.stringify(data,null,2)}
-$('#loginForm').addEventListener('submit',e=>{e.preventDefault(); if($('#adminPass').value===PASSWORD){localStorage.setItem(LS.login,'1');showApp()} else toast('Wrong password')});
-if(localStorage.getItem(LS.login)==='1')showApp(); $$('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab)); $('#logoutBtn').onclick=logout;
-$('#galleryForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target), a=arr('gallery');a.unshift({src:f.get('src'),title:f.get('title'),category:f.get('category')});set('gallery',a);e.target.reset();render();toast('Gallery item added')};
-$('#productForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target), a=arr('products');a.unshift({src:f.get('src'),name:f.get('name'),price:f.get('price')||'Price on request',tag:f.get('tag'),status:f.get('status')||'Available'});set('products',a);e.target.reset();render();toast('Product added')};
-$('#clearNotes').onclick=()=>{set('notes',[]);render();toast('Guest book cleared')}; $('#refreshExport').onclick=refreshExport; $('#downloadExport').onclick=()=>{refreshExport();const blob=new Blob([$('#exportBox').textContent],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='gaaiso-admin-export.json';a.click()};
-</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GAAISO Admin Studio</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <section class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="logo-row"><div class="ornament">✦</div><div><h1>GAAISO</h1><span>Admin Studio</span></div></div>
+      <h2>Owner Login</h2>
+      <p>Enter the admin password to open the website control panel.</p>
+      <form id="loginForm" class="login-form">
+        <input id="adminPassword" type="password" placeholder="Admin password" autocomplete="current-password">
+        <button type="submit">Login</button>
+      </form>
+      <small>Route: <strong>/admin</strong></small>
+    </div>
+  </section>
+
+  <main class="studio hidden" id="adminStudio">
+    <aside class="sidebar">
+      <div class="brand-block">
+        <div class="brand-icon">✥</div>
+        <div><strong>GAAISO</strong><span>Admin Studio</span></div>
+      </div>
+      <div class="profile-card"><div class="avatar">SA</div><div><b>Sony Admin</b><span>Super Admin</span><em>● Online</em></div></div>
+      <nav class="side-nav">
+        <button class="active" data-tab="dashboard">⌂ Dashboard</button>
+        <button data-tab="homepage">✎ Homepage Editor</button>
+        <button data-tab="hero">▧ Hero Media</button>
+        <button data-tab="gallery">▧ Gallery Manager</button>
+        <button data-tab="shop">▢ Shop Manager</button>
+        <button data-tab="design">◉ Design & Branding</button>
+        <button data-tab="guestbook">▥ Guest Book</button>
+        <button data-tab="backup">☁ Backup & Restore</button>
+        <button id="logoutBtn">↪ Logout</button>
+      </nav>
+      <div class="status-card"><b>Website Status</b><span><i></i> Live</span><small id="lastSaved">Last saved: not yet</small><a href="../index.html" target="_blank">View Site ↗</a></div>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar">
+        <button id="menuToggle" class="hamb">☰</button>
+        <div class="welcome">Welcome back, <b>Sony Admin</b> <span>Super Admin</span></div>
+        <div class="top-actions"><a href="../index.html" target="_blank">◉ Preview Website ↗</a><div class="mini-avatar">SA</div><b>Sony Admin⌄</b></div>
+      </header>
+
+      <div class="tabs-strip">
+        <button class="active" data-tab="homepage">✎ Homepage Editor</button>
+        <button data-tab="hero">▧ Hero Media</button>
+        <button data-tab="gallery">▧ Gallery Manager</button>
+        <button data-tab="shop">▢ Shop Manager</button>
+        <button data-tab="design">◉ Design & Branding</button>
+        <button data-tab="guestbook">▥ Guest Book</button>
+      </div>
+
+      <section class="tab-page active" id="tab-dashboard">
+        <div class="dashboard-grid">
+          <section class="panel editor-panel" data-jump="homepage"></section>
+          <section class="panel hero-panel" data-jump="hero"></section>
+          <section class="panel preview-panel"></section>
+          <section class="panel gallery-panel small-panel" data-jump="gallery"></section>
+          <section class="panel shop-panel small-panel" data-jump="shop"></section>
+          <section class="panel guest-panel small-panel" data-jump="guestbook"></section>
+        </div>
+      </section>
+
+      <section class="tab-page" id="tab-homepage">
+        <div class="two-col">
+          <section class="panel editor-panel full-editor"></section>
+          <section class="panel preview-panel sticky-preview"></section>
+        </div>
+      </section>
+
+      <section class="tab-page" id="tab-hero">
+        <div class="two-col">
+          <section class="panel hero-panel full-editor"></section>
+          <section class="panel preview-panel sticky-preview"></section>
+        </div>
+      </section>
+
+      <section class="tab-page" id="tab-gallery">
+        <section class="panel gallery-full-panel"></section>
+      </section>
+
+      <section class="tab-page" id="tab-shop">
+        <section class="panel shop-full-panel"></section>
+      </section>
+
+      <section class="tab-page" id="tab-design">
+        <div class="two-col">
+          <section class="panel design-panel full-editor"></section>
+          <section class="panel preview-panel sticky-preview"></section>
+        </div>
+      </section>
+
+      <section class="tab-page" id="tab-guestbook">
+        <section class="panel guest-full-panel"></section>
+      </section>
+
+      <section class="tab-page" id="tab-backup">
+        <section class="panel backup-panel"></section>
+      </section>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <div class="modal" id="videoPreviewModal"><div class="modal-card"><button class="modal-close">×</button><video controls playsinline></video></div></div>
+  <script src="../cms-data.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

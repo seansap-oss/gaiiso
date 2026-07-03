@@ -1,21 +1,24 @@
 # GAAISO Website
 
-Static production-ready landing website for GAAISO.
+Static production-ready website for GAAISO.
 
 ## Pages
-- Home: `index.html`
-- About Us: `about.html`
-- Gallery: `gallery.html`
-- Shop / Enquire: `shop.html`
-- Guest Book: `guestbook.html`
-- Contact: `contact.html`
-- Owner admin: `/admin`
+
+- `index.html` — landing page
+- `about.html` — about page
+- `gallery.html` — gallery with lightbox
+- `shop.html` — shop / enquiry page
+- `guestbook.html` — guest sign book
+- `contact.html` — contact page
+- `admin/` — admin studio
 
 ## Admin
-- Route: `/admin`
-- Password: `av123`
 
-This is a static launch admin. It saves local changes in the browser using localStorage and can export JSON. For permanent cross-device uploads and moderation, connect Supabase or another backend.
+Route: `/admin`
+Password: `AV123`
 
-## Deploy to Vercel
-Push the folder to GitHub, import the repo in Vercel, and deploy as a static site. No build command is needed.
+The admin studio can edit homepage text, fonts, colour palette, logo, hero photos, gallery photos, shop items, guest book notes, and hero video settings. Static-site admin changes are stored in browser local storage. For real cross-device owner editing and public live updates, connect Supabase storage/database later.
+
+## Vercel
+
+Static site. No install command, build command, or output directory required.
